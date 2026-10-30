@@ -1,0 +1,3 @@
+bill_id,user_id,cycle_id,bill_date,due_date,principal,conv_fee,gst,late_fee,bounce,total,paid_on,status
+B0001,U01,2027-01-C1,2027-01-15,2027-01-20,7000.00,70.00,12.60,0.00,0.00,7082.60,2027-01-20,PAID_ON_TIME
+B0002,U02,2027-01-C1,2027-01-15,2027-01-20,800.00,0.00,0.00,0.00,0.00,800.00,2027-01-18,PAID_ON_TIME
