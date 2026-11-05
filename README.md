@@ -4,11 +4,12 @@ Team T061 · C Vedasree (1AT24CG018), Chandan T (1AT24CG019) · Section CSD
 
 A deterministic, command-file driven ledger engine for a pay-later fintech. It reads users,
 merchants, purchase/refund/payment commands and auto-debit results, and writes every
-authorisation decision, every bill and a ledger print per user. No UI.
+authorisation decision, every bill, the line state on each date, the month-end bureau file
+and a ledger print per user. No UI.
 
 Python 3.10+, standard library only. Tests use pytest.
 
-## Status (Week 2 – Core flows)
+## Status (Week 3 – Full rules)
 
 | Area | Rules | Status |
 | --- | --- | --- |
@@ -16,9 +17,15 @@ Python 3.10+, standard library only. Tests use pytest.
 | Purchase and refund authorisation | BR-02 to BR-07, BR-13, V01 to V05 | Done |
 | Available line | BR-06 | Done |
 | Billing, convenience fee, GST, refunds | BR-08 to BR-12 | Done |
-| Auto-debit schedule and success posting | BR-14 | Done |
+| Auto-debit schedule, bounce charges, mandate cancel | BR-14 to BR-16 | Done |
+| Late fee tiers and 10% cap | BR-17, BR-18 | Done |
 | Payment allocation and credit balance | BR-19, A-15 | Done |
-| Happy path end to end | Section 6 of the design document | Done, tested |
+| Freeze and restore state machine | BR-20 to BR-24 | Done |
+| Month-end bureau file | BR-25, BR-26 | Done |
+| Edge cases E1 to E8 | Design document section 11 | Done, one test each |
+| Organisers' sample data | Week 2 files | Waiting for the files in `data/sample/` |
+
+Every rule decision is recorded in [docs/decision_log.md](docs/decision_log.md).
 
 ## Setup
 
@@ -46,6 +53,10 @@ Outputs in the `--out` folder:
 
 - `decisions.csv`: every PURCHASE and REFUND decision, with failed rule IDs and the available line after it
 - `bills.csv`: every bill with principal, convenience fee, GST, late fee, bounce, total, due date and paid status
+- `line_states.csv`: each user's state, current line, available line and days overdue at the end of every date
+- `state_changes.csv`: every freeze, restore and line-restored event with its trigger rule
+- `debit_attempts.csv`: every scheduled attempt with its result and any bounce charge
+- `bureau_YYYY-MM.csv`: month-end bureau file (DPD, amount reported without GST)
 - `rejected_lines.csv`: malformed or out-of-order input lines (V05)
 - `ledger/<user_id>.txt`: a readable ledger print per user
 
@@ -55,8 +66,10 @@ Outputs in the `--out` folder:
 python -m pytest -q
 ```
 
-- `tests/unit/`: one or more tests per business rule (BR-01 to BR-14, BR-19) and per validation rule (V01 to V05)
+- `tests/unit/`: tests named `test_br_NN_*` for every business rule BR-01 to BR-26, and V01 to V05
+- `tests/scenarios/test_edge_cases.py`: `test_e1_*` to `test_e8_*`, each edge case run through the parser and engine
 - `tests/scenarios/test_happy_path.py`: runs `data/happy_path/` and compares the output line by line with hand-worked expected files
+- `tests/test_rule_coverage.py`: fails if any BR-ID or edge case has no test
 
 ## Input formats (provisional until aligned with the sample files)
 
@@ -73,10 +86,11 @@ Command types: PURCHASE, REFUND, PAYMENT, MANDATE_CANCEL. Commands must be in ti
 
 ```
 bnpl/            engine package (money, calendar, rules, models, ledger, users,
-                 authorisation, billing, payments, autodebit, engine, io, cli)
+                 authorisation, billing, fees, payments, autodebit, state_machine,
+                 bureau, engine, io, cli)
 data/happy_path/ happy-path scenario and its expected outputs
 data/sample/     organisers' sample files
-docs/            design document
+docs/            design document and decision log
 tests/           unit and scenario tests
 ```
 
