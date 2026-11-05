@@ -22,6 +22,9 @@ class Ledger:
         self.decisions = []   # Decision lines for decisions.csv
         self.rejected = []    # malformed input lines (V05)
         self.log_lines = defaultdict(list)  # user_id -> ledger print lines
+        self.state_changes = []  # StateChange, in time order
+        self.state_rows = []     # (date, user_id, state, current_line, available, dpd) end of day
+        self.bureau_reports = {} # "YYYY-MM" -> list of BureauRow
         self._bill_seq = 0
 
     # ---- lookups -------------------------------------------------------

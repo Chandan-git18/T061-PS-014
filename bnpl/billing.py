@@ -7,6 +7,7 @@ from .calendar import bill_date_of, due_date_of
 from .models import Bill
 from .money import ZERO, fmt, money
 from .payments import apply_credit
+from .state_machine import check_restore, mark_paid
 
 
 def convenience_fee(principal):
@@ -32,7 +33,8 @@ def generate_bills(ledger, cycle_id: str, gen_ts: datetime) -> list:
         purchases = [p for p in ledger.purchases.values()
                      if p.user_id == user_id and p.cycle_id == cycle_id
                      and p.billed_in is None]
-        if not purchases:                                           # A-07
+        if not purchases:                                           # A-07: no bill
+            apply_credit(ledger, user_id, gen_ts)                   # A-09: credit still pays old bills
             continue
         gross = sum((p.net_unbilled for p in purchases), ZERO)      # BR-11
         credit_used = min(user.credit_balance, gross)               # BR-12
@@ -51,8 +53,9 @@ def generate_bills(ledger, cycle_id: str, gen_ts: datetime) -> list:
                    f"fee={fmt(fee)} gst={fmt(gst)} total={fmt(bill.total)} "
                    f"due={bill.due_date.isoformat()}{credit_note}")
         apply_credit(ledger, user_id, gen_ts)                       # A-09
-        if bill.total == 0 and bill.paid_on is None:
-            bill.paid_on, bill.on_time = bill_date, True            # A-07
+        if bill.total == 0 and bill.paid_on is None:                # paid by credit only
+            mark_paid(ledger, bill, bill_date)                      # A-07: counts as on time
+            check_restore(ledger, user, gen_ts)                     # BR-24
         if not bill.is_paid and user.mandate_active:
             schedule_attempts(ledger, bill)
     return created

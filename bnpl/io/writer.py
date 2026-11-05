@@ -1,4 +1,5 @@
-"""CSV outputs: decisions.csv, bills.csv, rejected_lines.csv and per-user ledger prints."""
+"""CSV outputs: decisions, bills, line states, state changes, debit attempts,
+bureau files, rejected lines and per-user ledger prints."""
 import csv
 from pathlib import Path
 
@@ -8,6 +9,12 @@ DECISION_HEADER = ["ts", "txn_id", "user_id", "type", "amount", "decision",
                    "rule_ids", "available_after"]
 BILL_HEADER = ["bill_id", "user_id", "cycle_id", "bill_date", "due_date", "principal",
                "conv_fee", "gst", "late_fee", "bounce", "total", "paid_on", "status"]
+LINE_STATE_HEADER = ["date", "user_id", "state", "current_line", "available_line",
+                     "days_overdue"]
+STATE_CHANGE_HEADER = ["ts", "user_id", "from_state", "to_state", "current_line", "trigger"]
+ATTEMPT_HEADER = ["bill_id", "user_id", "attempt_no", "scheduled_at", "result", "bounce"]
+BUREAU_HEADER = ["report_month", "user_id", "kyc", "sanctioned_line", "current_line",
+                 "line_state", "amount_reported", "dpd"]
 
 
 def _write(path, header, rows):
@@ -41,6 +48,26 @@ def write_outputs(ledger, out_dir):
 
     _write(out / "rejected_lines.csv", ["line_no", "rule_id", "reason", "raw"],
            [[r.line_no, r.rule_id, r.reason, r.raw] for r in ledger.rejected])
+
+    _write(out / "line_states.csv", LINE_STATE_HEADER, [
+        [d.isoformat(), uid, state, fmt(line), fmt(avail), dpd]
+        for d, uid, state, line, avail, dpd in ledger.state_rows])
+
+    _write(out / "state_changes.csv", STATE_CHANGE_HEADER, [
+        [s.ts.isoformat(), s.user_id, s.from_state.value, s.to_state.value,
+         fmt(s.current_line), s.trigger]
+        for s in ledger.state_changes])
+
+    _write(out / "debit_attempts.csv", ATTEMPT_HEADER, [
+        [a.bill_id, a.user_id, a.attempt_no, a.scheduled_at.isoformat(),
+         a.result.value if a.result else "PENDING", "50.00" if a.bounce_charged else "0.00"]
+        for a in ledger.attempts])
+
+    for month, rows in sorted(ledger.bureau_reports.items()):
+        _write(out / f"bureau_{month}.csv", BUREAU_HEADER, [
+            [r.report_month, r.user_id, r.kyc, fmt(r.sanctioned_line), fmt(r.current_line),
+             r.line_state, fmt(r.amount_reported), r.dpd]
+            for r in rows])
 
     ledger_dir = out / "ledger"
     ledger_dir.mkdir(exist_ok=True)

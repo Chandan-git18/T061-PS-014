@@ -4,6 +4,7 @@ from datetime import datetime
 from . import rules
 from .models import Allocation, Decision, Payment, PaymentSource
 from .money import ZERO, fmt, is_valid_amount, money
+from .state_machine import after_payment, mark_paid
 
 
 def allocate(ledger, user_id: str, amount, ts: datetime):
@@ -25,8 +26,7 @@ def allocate(ledger, user_id: str, amount, ts: datetime):
                 allocations.append(Allocation(bill.bill_id, component, take))
     for bill in bills:
         if bill.is_paid and bill.paid_on is None:
-            bill.paid_on = ts.date()
-            bill.on_time = bill.paid_on <= bill.due_date
+            mark_paid(ledger, bill, ts.date())                      # BR-24 streak
     return allocations, remaining
 
 
@@ -40,6 +40,7 @@ def post_payment(ledger, txn_id: str, user_id: str, amount, ts: datetime,
     extra = f", credit +{fmt(excess)}" if excess > 0 else ""
     ledger.log(user_id, ts, f"PAYMENT {txn_id} {source.value} {fmt(amount)} -> "
                             f"[{parts}{extra}]")
+    after_payment(ledger, user_id, ts)                              # BR-23, BR-24
     return payment
 
 
