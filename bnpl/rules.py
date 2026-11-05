@@ -33,6 +33,21 @@ DEBIT_DAY_OFFSETS = (0, 2, 5)  # due date, due + 2, due + 5
 DEBIT_HOUR = 8
 BOUNCE_CHARGE = D("50.00")
 
+# BR-17 / BR-18 late fee, charged at 00:00 on due + 6 days ("after due + 5 days")
+LATE_FEE_DAYS_AFTER_DUE = 6
+LATE_FEE_TIERS = ((D("2000.00"), D("50.00")),   # bill <= 2,000
+                  (D("5000.00"), D("150.00")))  # bill <= 5,000
+LATE_FEE_ABOVE = D("300.00")                    # bill above 5,000
+LATE_FEE_CAP_PCT = D("0.10")                    # A-02: 10% of bill principal
+
+# BR-20 to BR-22 freeze thresholds (days overdue)
+SOFT_FREEZE_DAYS = 3
+HARD_FREEZE_DAYS = 30
+CLOSED_DAYS = 90
+
+# BR-24 restoration
+RESTORE_ON_TIME_BILLS = 3
+
 # BR-19 allocation order (Bill attribute names)
 ALLOCATION_ORDER = ("bounce_total", "late_fee", "conv_fee", "conv_gst", "principal")
 

@@ -52,6 +52,7 @@ class User:
     mandate_active: bool = True
     credit_balance: Decimal = ZERO
     on_time_streak: int = 0
+    line_reduced: bool = False  # True from HARD_FREEZE until BR-24 restores the line
 
 
 @dataclass
@@ -104,6 +105,7 @@ class Bill:
         default_factory=lambda: {c: ZERO for c in ALLOCATION_ORDER})
     paid_on: Optional[date] = None
     on_time: Optional[bool] = None
+    late_fee_charged: bool = False
 
     @property
     def total(self) -> Decimal:
@@ -144,6 +146,28 @@ class Payment:
     ts: datetime
     source: PaymentSource
     allocations: list = field(default_factory=list)
+
+
+@dataclass
+class StateChange:
+    ts: datetime
+    user_id: str
+    from_state: LineState
+    to_state: LineState
+    current_line: Decimal
+    trigger: str
+
+
+@dataclass
+class BureauRow:
+    report_month: str
+    user_id: str
+    kyc: str
+    sanctioned_line: Decimal
+    current_line: Decimal
+    line_state: str
+    amount_reported: Decimal
+    dpd: int
 
 
 @dataclass
