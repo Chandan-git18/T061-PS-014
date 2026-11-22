@@ -1,0 +1,2 @@
+line_no,rule_id,reason,raw
+8,V05,timestamp earlier than previous command,"2027-01-07T10:00:00,PURCHASE,T0007,U01,M02,100.00,"
