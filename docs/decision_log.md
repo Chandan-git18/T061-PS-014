@@ -28,6 +28,9 @@ Assumption IDs (A-xx) are from section 2 of the design document; each one is a c
 | D-20 | 2026-11-05 | Bureau file written at 00:00:00 on the 1st, after the month-end bill, before late fees and state checks | BR-25 | Shows the state as at the end of the last day of the month |
 | D-21 | 2026-11-05 | Bureau amount = unpaid principal + conv fee + late fee + bounce + unbilled − credit, floored at 0 | BR-26 | GST excluded as the brief says; credit is money the user is owed |
 | D-22 | 2026-11-05 | By default the run ends on the 1st after the last command, then continues until pending debit attempts and late fees are done; `--until` overrides | n/a | Last cycle billed and last month reported without extra input |
+| D-23 | 2026-11-22 | Added a six-user, four-month demo scenario (`data/demo/`) that reaches every state, fee and decline type; its outputs are locked in `data/demo/expected/` | n/a | One run shows the whole rule set in the video; story values were checked by hand before locking |
+| D-24 | 2026-11-22 | Added `python -m bnpl demo`, which runs the demo scenario into `out/demo/` | n/a | One short command for the video and the viva, same on Windows and Linux |
+| D-25 | 2026-11-22 | The demo's expected files are regenerated only on purpose, after a rule change is agreed and recorded here | n/a | Stops a silent behaviour change from passing as a test update |
 
 ## Still waiting on the organisers
 

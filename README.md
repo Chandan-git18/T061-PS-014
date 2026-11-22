@@ -9,7 +9,10 @@ and a ledger print per user. No UI.
 
 Python 3.10+, standard library only. Tests use pytest.
 
-## Status (Week 3 – Full rules)
+## Status (Week 4 – Final submission)
+
+All 26 business rules (BR-01 to BR-26), 5 validation rules (V01 to V05) and 8 edge cases (E1 to E8)
+are implemented and tested. The suite has 90 tests, all passing.
 
 | Area | Rules | Status |
 | --- | --- | --- |
@@ -22,10 +25,18 @@ Python 3.10+, standard library only. Tests use pytest.
 | Payment allocation and credit balance | BR-19, A-15 | Done |
 | Freeze and restore state machine | BR-20 to BR-24 | Done |
 | Month-end bureau file | BR-25, BR-26 | Done |
-| Edge cases E1 to E8 | Design document section 11 | Done, one test each |
-| Organisers' sample data | Week 2 files | Waiting for the files in `data/sample/` |
+| Edge cases E1 to E8 | Design document section 9 | Done, one test each |
+| Demo scenario | `data/demo/` | Done, story and every output file tested |
+| Organisers' sample data | Week 2 files | Run from `data/sample/` once received |
 
-Every rule decision is recorded in [docs/decision_log.md](docs/decision_log.md).
+## Documents
+
+| Document | What it holds |
+| --- | --- |
+| [docs/design_document.pdf](docs/design_document.pdf) | Final design: glossary, class and state diagrams, rule register, edge cases, traceability rule → code → test |
+| [docs/decision_log.md](docs/decision_log.md) | Every rule interpretation and design choice, with date and reason |
+| [docs/demo_video_script.md](docs/demo_video_script.md) | Script and commands for the 5-minute demo video |
+| Demo video | Link to be added after recording |
 
 ## Setup
 
@@ -36,6 +47,15 @@ pip install -r requirements.txt
 ```
 
 ## Run
+
+Demo scenario (six users, four months, every state and fee):
+
+```
+python -m bnpl demo
+```
+
+It writes to `out/demo/`. The clearest single file is `out/demo/ledger/U03.txt`: a user who reaches
+HARD_FREEZE and gets the original line back.
 
 Happy-path scenario:
 
@@ -69,6 +89,7 @@ python -m pytest -q
 - `tests/unit/`: tests named `test_br_NN_*` for every business rule BR-01 to BR-26, and V01 to V05
 - `tests/scenarios/test_edge_cases.py`: `test_e1_*` to `test_e8_*`, each edge case run through the parser and engine
 - `tests/scenarios/test_happy_path.py`: runs `data/happy_path/` and compares the output line by line with hand-worked expected files
+- `tests/scenarios/test_demo.py`: runs `data/demo/`, checks each user's story against hand-worked values, then compares every output file
 - `tests/test_rule_coverage.py`: fails if any BR-ID or edge case has no test
 
 ## Input formats (provisional until aligned with the sample files)
@@ -89,8 +110,9 @@ bnpl/            engine package (money, calendar, rules, models, ledger, users,
                  authorisation, billing, fees, payments, autodebit, state_machine,
                  bureau, engine, io, cli)
 data/happy_path/ happy-path scenario and its expected outputs
+data/demo/       demo scenario (6 users, 4 months) and its expected outputs
 data/sample/     organisers' sample files
-docs/            design document and decision log
+docs/            design document (PDF), decision log, demo video script
 tests/           unit and scenario tests
 ```
 
